@@ -36,21 +36,8 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
             var response = _api.GetQuotes(request).Result.ToArray();
 
-            ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Length; i++)
-            {
-                var quote = response[i];
-
-                if (cheapestQuote == null)
-                {
-                    cheapestQuote = quote;
-                }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
-            }
+            var cheapestQuote = response.Where(quote => quote.MonthlyPayment == response.Max(quote => quote.MonthlyPayment))
+                                        .First();
             
             return new HomeInsuranceQuote
             {
