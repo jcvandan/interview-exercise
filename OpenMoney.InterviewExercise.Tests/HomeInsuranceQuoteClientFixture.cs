@@ -1,4 +1,5 @@
 using Moq;
+using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.QuoteClients;
 using OpenMoney.InterviewExercise.ThirdParties;
 using Xunit;
@@ -10,55 +11,39 @@ namespace OpenMoney.InterviewExercise.Tests
         private readonly Mock<IThirdPartyHomeInsuranceApi> _apiMock = new();
 
         [Fact]
-        public async void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
+        public void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
         {
-            const decimal houseValue = 10_000_001m;
-
+            const float houseValue = 10_000_001;
+            
             var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
-            var quote = await mortgageClient.GetQuote(houseValue);
-
+            var quote = mortgageClient.GetQuote(new GetQuotesRequest
+            {
+                HouseValue = houseValue
+            });
+            
             Assert.Null(quote);
         }
 
         [Fact]
-        public async void GetQuote_ShouldReturn_AQuote()
+        public void GetQuote_ShouldReturn_AQuote()
         {
-            const decimal houseValue = 100_000m;
+            const float houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.Is<ThirdPartyHomeInsuranceRequest>(r =>
-                    r.ContentsValue == HomeInsuranceQuoteClient.ContentsValue && r.HouseValue == houseValue)))
+                    r.ContentsValue == HomeInsuranceQuoteClient.ContentsValue && r.HouseValue == (decimal) houseValue)))
                 .ReturnsAsync(new[]
                 {
                     new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 30 }
                 });
-
+            
             var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
-            var quote = await mortgageClient.GetQuote(houseValue);
-
+            var quote = mortgageClient.GetQuote(new GetQuotesRequest
+            {
+                HouseValue = houseValue
+            });
+            
             Assert.Equal(30m, (decimal)quote.MonthlyPayment);
-        }
-
-        [Fact]
-        public async void GetQuote_ShouldReturnTheCheapestQuote()
-        {
-            const decimal houseValue = 100_000m;
-
-            _apiMock
-                .Setup(api => api.GetQuotes(It.Is<ThirdPartyHomeInsuranceRequest>(r =>
-                    r.ContentsValue == HomeInsuranceQuoteClient.ContentsValue && r.HouseValue == houseValue)))
-                .ReturnsAsync(new[]
-                {
-                    new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 30 },
-                    new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 22 },
-                    new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 60 },
-                    new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 35 }
-                });
-
-            var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
-            var quote = await mortgageClient.GetQuote(houseValue);
-
-            Assert.Equal(22m, (decimal)quote.MonthlyPayment);
         }
     }
 }

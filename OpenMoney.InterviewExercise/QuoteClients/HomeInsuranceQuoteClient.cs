@@ -1,10 +1,15 @@
 using System.Linq;
-using System.Threading.Tasks;
+using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.Models.Quotes;
 using OpenMoney.InterviewExercise.ThirdParties;
 
 namespace OpenMoney.InterviewExercise.QuoteClients
 {
+    public interface IHomeInsuranceQuoteClient
+    {
+        HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest);
+    }
+
     public class HomeInsuranceQuoteClient : IHomeInsuranceQuoteClient
     {
         private IThirdPartyHomeInsuranceApi _api;
@@ -16,24 +21,37 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             _api = api;
         }
 
-        public async Task<HomeInsuranceQuote> GetQuote(decimal houseValue)
+        public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            if (houseValue > 10_000_000m)
+            // check if request is eligible
+            if (getQuotesRequest.HouseValue > 10_000_000d)
             {
                 return null;
             }
             
             var request = new ThirdPartyHomeInsuranceRequest
             {
-                HouseValue = houseValue,
+                HouseValue = (decimal) getQuotesRequest.HouseValue,
                 ContentsValue = ContentsValue
             };
 
-            var response = (await _api.GetQuotes(request)).ToList();
+            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
 
-            ThirdPartyHomeInsuranceResponse cheapestQuote = response
-                .OrderBy(a => a.MonthlyPayment)
-                .First();
+            ThirdPartyHomeInsuranceResponse cheapestQuote = null;
+            
+            for (var i = 0; i < response.Length; i++)
+            {
+                var quote = response[i];
+
+                if (cheapestQuote == null)
+                {
+                    cheapestQuote = quote;
+                }
+                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
+                {
+                    cheapestQuote = quote;
+                }
+            }
             
             return new HomeInsuranceQuote
             {

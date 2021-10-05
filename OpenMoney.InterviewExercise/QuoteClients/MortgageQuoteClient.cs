@@ -1,10 +1,15 @@
 using System.Linq;
-using System.Threading.Tasks;
+using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.Models.Quotes;
 using OpenMoney.InterviewExercise.ThirdParties;
 
 namespace OpenMoney.InterviewExercise.QuoteClients
 {
+    public interface IMortgageQuoteClient
+    {
+        MortgageQuote GetQuote(GetQuotesRequest getQuotesRequest);
+    }
+
     public class MortgageQuoteClient : IMortgageQuoteClient
     {
         private readonly IThirdPartyMortgageApi _api;
@@ -14,26 +19,39 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             _api = api;
         }
         
-        public async Task<MortgageQuote> GetQuote(decimal houseValue, decimal deposit)
+        public MortgageQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            var loanToValueFraction = deposit / houseValue;
-            if (loanToValueFraction < 0.1m)
+            // check if mortgage request is eligible
+            var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
+            if (loanToValueFraction < 0.1d)
             {
                 return null;
             }
             
-            var mortgageAmount = houseValue - deposit;
+            var mortgageAmount = getQuotesRequest.Deposit - getQuotesRequest.HouseValue;
             
             var request = new ThirdPartyMortgageRequest
             {
-                MortgageAmount = mortgageAmount
+                MortgageAmount = (decimal) mortgageAmount
             };
 
-            var response = (await _api.GetQuotes(request)).ToList();
+            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
 
-            ThirdPartyMortgageResponse cheapestQuote = response
-                .OrderBy(a => a.MonthlyPayment)
-                .First();
+            ThirdPartyMortgageResponse cheapestQuote = null;
+            
+            for (var i = 0; i < response.Length; i++)
+            {
+                var quote = response[i];
+
+                if (cheapestQuote == null)
+                {
+                    cheapestQuote = quote;
+                }
+                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
+                {
+                    cheapestQuote = quote;
+                }
+            }
             
             return new MortgageQuote
             {
