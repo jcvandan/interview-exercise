@@ -1,5 +1,4 @@
 using Moq;
-using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.QuoteClients;
 using OpenMoney.InterviewExercise.ThirdParties;
 using Xunit;
@@ -11,42 +10,81 @@ namespace OpenMoney.InterviewExercise.Tests
         private readonly Mock<IThirdPartyMortgageApi> _apiMock = new();
 
         [Fact]
-        public void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
+        public async void GetQuote_ShouldReturnNullForWrongProportion()
         {
-            const float deposit = 9_000;
-            const float houseValue = 100_000;
-            
+            const decimal houseValue = 100_000m;
+            const decimal deposit = 100m;
+            _apiMock
+                .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
+                .ReturnsAsync(new[]
+                {
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 30 }
+                });
+
             var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
-            var quote = mortgageClient.GetQuote(new GetQuotesRequest
-            {
-                Deposit = deposit,
-                HouseValue = houseValue
-            });
-            
-            Assert.Null(quote);
+            var response = await mortgageClient.GetQuote(houseValue, deposit);
+
+            Assert.Null(response);
         }
 
         [Fact]
-        public void GetQuote_ShouldReturn_AQuote()
+        public async void GetQuote_ShouldSendCorrectMortgageAmount()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal houseValue = 100_000m;
+            const decimal deposit = 60_000m;
+            decimal mortgageAmount = 0;
+            _apiMock
+                .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
+                .ReturnsAsync(new[]
+                {
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 30 }
+                })
+            .Callback<ThirdPartyMortgageRequest>(c => mortgageAmount = c.MortgageAmount) ;
+
+            var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
+            await mortgageClient.GetQuote(houseValue, deposit);
+
+            Assert.Equal(40_000m, mortgageAmount);
+        }
+
+        [Fact]
+        public async void GetQuote_ShouldReturn_AQuote()
+        {
+            const decimal houseValue = 100_000m;
+            const decimal deposit = 60_000m;
+            _apiMock
+                .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
+                .ReturnsAsync(new[]
+                {
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 30 }
+                });
+
+            var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
+            var quote = await mortgageClient.GetQuote(houseValue, deposit);
+
+            Assert.Equal(30m, (decimal)quote.MonthlyPayment);
+        }
+
+        [Fact]
+        public async void GetQuote_ShouldReturnTheCheapestQuote()
+        {
+            const decimal houseValue = 100_000m;
+            const decimal deposit = 60_000m;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
                 .ReturnsAsync(new[]
                 {
-                    new ThirdPartyMortgageResponse { MonthlyPayment = 300m }
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 30 },
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 22 },
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 60 },
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 35 }
                 });
-            
+
             var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
-            var quote = mortgageClient.GetQuote(new GetQuotesRequest
-            {
-                Deposit = deposit,
-                HouseValue = houseValue
-            });
-            
-            Assert.Equal(300m, (decimal)quote.MonthlyPayment);
+            var quote = await mortgageClient.GetQuote(houseValue, deposit);
+
+            Assert.Equal(22m, (decimal)quote.MonthlyPayment);
         }
     }
 }

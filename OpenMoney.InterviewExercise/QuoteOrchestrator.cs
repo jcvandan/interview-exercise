@@ -1,5 +1,8 @@
 ﻿using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.QuoteClients;
+using System.Threading.Tasks;
+using OpenMoney.InterviewExercise.Models.Quotes;
+using System;
 
 namespace OpenMoney.InterviewExercise
 {
@@ -16,13 +19,36 @@ namespace OpenMoney.InterviewExercise
             _mortgageQuoteClient = mortgageQuoteClient;
         }
 
-        public GetQuotesResponse GetQuotes(GetQuotesRequest request)
+        public async Task<GetQuotesResponse> GetQuotes(GetQuotesRequest request)
         {
-            return new GetQuotesResponse
+            var response = new GetQuotesResponse();
+            var mortgageQuote = _mortgageQuoteClient.GetQuote(
+                new decimal(request.HouseValue),
+                new decimal(request.Deposit)
+            );
+            var homeInsuranceQuote = _homeInsuranceQuoteClient.GetQuote(
+                new decimal(request.HouseValue)
+            );
+
+            try
             {
-                MortgageQuote = _mortgageQuoteClient.GetQuote(request),
-                HomeInsuranceQuote = _homeInsuranceQuoteClient.GetQuote(request)
-            };
+                response.MortgageQuote = await mortgageQuote;
+            }
+            catch
+            {
+                response.FailedMortgage = true;
+            }
+
+            try
+            {
+                response.HomeInsuranceQuote = await homeInsuranceQuote;
+            }
+            catch 
+            {
+                response.FailedHomeInsurance = true;
+            }
+
+            return response;
         }
     }
 }
