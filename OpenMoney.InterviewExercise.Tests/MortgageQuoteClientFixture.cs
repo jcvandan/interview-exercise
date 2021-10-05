@@ -7,37 +7,25 @@ namespace OpenMoney.InterviewExercise.Tests
 {
     public class MortgageQuoteClientFixture
     {
-        private readonly Mock<IThirdPartyHomeInsuranceApi> _apiMock = new();
+        private readonly Mock<IThirdPartyMortgageApi> _apiMock = new();
 
         [Fact]
-        public void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
-        {
-            //testing commit
-            const decimal houseValue = 10_000_001m;
-            
-            var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
-            var quote = mortgageClient.GetQuote(houseValue);
-            
-            Assert.Null(quote);
-        }
-
-        [Fact]
-        public void GetQuote_ShouldReturn_AQuote()
+        public void GetQuote_ShouldCallWithCorrectMortgageValue()
         {
             const decimal houseValue = 100_000m;
+            const decimal deposit = 25_000m;
 
             _apiMock
-                .Setup(api => api.GetQuotes(It.Is<ThirdPartyHomeInsuranceRequest>(r =>
-                    r.ContentsValue == HomeInsuranceQuoteClient.ContentsValue && r.HouseValue == houseValue)))
+                .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
                 .ReturnsAsync(new[]
                 {
-                    new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 30 }
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 700 }
                 });
             
-            var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
-            var quote = mortgageClient.GetQuote(houseValue);
-            
-            Assert.Equal(30m, (decimal)quote.MonthlyPayment);
+            var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
+            var quote = mortgageClient.GetQuote(houseValue, deposit);
+
+            _apiMock.Verify(s => s.GetQuotes(It.Is<ThirdPartyMortgageRequest>(r => r.MortgageAmount == 75_000m)));
         }
     }
 }
