@@ -1,5 +1,7 @@
 # OpenMoney Interview Exercise
 
+Edited by Ian
+
 ## Pre-requisites
 
 - .NET 5 SDK installed on your machine
