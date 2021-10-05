@@ -1,15 +1,10 @@
 using System.Linq;
-using OpenMoney.InterviewExercise.Models;
+using System.Threading.Tasks;
 using OpenMoney.InterviewExercise.Models.Quotes;
 using OpenMoney.InterviewExercise.ThirdParties;
 
 namespace OpenMoney.InterviewExercise.QuoteClients
 {
-    public interface IHomeInsuranceQuoteClient
-    {
-        HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest);
-    }
-
     public class HomeInsuranceQuoteClient : IHomeInsuranceQuoteClient
     {
         private IThirdPartyHomeInsuranceApi _api;
@@ -21,37 +16,24 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             _api = api;
         }
 
-        public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
+        public async Task<HomeInsuranceQuote> GetQuote(decimal houseValue)
         {
-            // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000d)
+            if (houseValue > 10_000_000m)
             {
                 return null;
             }
             
             var request = new ThirdPartyHomeInsuranceRequest
             {
-                HouseValue = (decimal) getQuotesRequest.HouseValue,
+                HouseValue = houseValue,
                 ContentsValue = ContentsValue
             };
 
-            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
+            var response = (await _api.GetQuotes(request)).ToList();
 
-            ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Length; i++)
-            {
-                var quote = response[i];
-
-                if (cheapestQuote == null)
-                {
-                    cheapestQuote = quote;
-                }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
-            }
+            ThirdPartyHomeInsuranceResponse cheapestQuote = response
+                .OrderBy(a => a.MonthlyPayment)
+                .First();
             
             return new HomeInsuranceQuote
             {

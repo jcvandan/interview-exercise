@@ -13,14 +13,25 @@ The feature you're looking at is a Mortgage and Home Insurance quote provider se
 
 Below are a few tasks to get through so we can ship the new feature! Also as Baldrick was a complete incompetent, the code he's written is ugly and reads like The Daily Star, not the well written prose we expect. While working through the following tasks please tidy up the code as you go.
 
+## Acceptance Criteria
+
+This is the original acceptance criteria for the 2 integrations:
+
+- Mortgage
+  - Call our partner via the `IThirdPartyMortgageApi` interface
+  - Select and return the quote with the lowest monthly payment
+  - If the Loan to Value % of the requested mortgage is lower than 10%, don't fetch a quote as it the request is not eligible
+- Home
+  - Call our partner via the `IThirdPartyHomeInsuranceApi` interface
+  - Select and return the quote with the lowest monthly payment
+  - If the requested house value is greater than 10 million, don't fetch a quote as it the request is not eligible
+
 ## Summary
 
-- Fork & clone our repository [instructions here](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
 - Work through the below tasks
 - Tidy up the code as you go
 - Do as much as you can in an hour
-- If you can't finish a task don't panic, just move on
-- Submit a PR for us to review [instructions here]("https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork")
+- Submit a PR for us to review
 
 ## Tasks
 
