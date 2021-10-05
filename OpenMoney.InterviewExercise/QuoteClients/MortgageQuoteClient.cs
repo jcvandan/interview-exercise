@@ -12,6 +12,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
     public class MortgageQuoteClient : IMortgageQuoteClient
     {
         private readonly IThirdPartyMortgageApi _api;
+        private readonly decimal _depositMinPercent = 0.1m;
 
         public MortgageQuoteClient(IThirdPartyMortgageApi api)
         {
@@ -21,11 +22,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         public MortgageQuote GetQuote(decimal houseValue, decimal deposit)
         {
             // check if mortgage request is eligible
-            var loanToValueFraction = deposit / houseValue;
-            if (loanToValueFraction < 0.1m)
-            {
-                return null;
-            }
+            if (!DepositIsWithinThreshold(houseValue, deposit)) { return null; };
             
             var mortgageAmount = houseValue - deposit;
             
@@ -43,6 +40,12 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             {
                 MonthlyPayment = (float) cheapestQuote.MonthlyPayment
             };
+        }
+
+        protected bool DepositIsWithinThreshold(decimal houseValue, decimal deposit)
+        {
+            var loanToValueFraction = deposit / houseValue;
+            return (loanToValueFraction >= _depositMinPercent);
         }
     }
 }
