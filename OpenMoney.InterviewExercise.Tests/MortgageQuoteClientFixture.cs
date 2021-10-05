@@ -12,6 +12,7 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
         {
+            //testing commit
             const decimal houseValue = 10_000_001m;
             
             var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
