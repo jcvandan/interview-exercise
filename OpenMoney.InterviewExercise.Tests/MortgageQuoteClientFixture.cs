@@ -11,7 +11,7 @@ namespace OpenMoney.InterviewExercise.Tests
         private readonly Mock<IThirdPartyMortgageApi> _apiMock = new();
 
         [Fact]
-        public void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
+        public void GetQuote_ShouldReturnNull_IfDepositUnder10Percent()
         {
             const float deposit = 9_000;
             const float houseValue = 100_000;
@@ -23,6 +23,20 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
             
+            Assert.Null(quote);
+        }
+
+        [Fact]
+        public void GetQuote_ShouldReturnNull_IfHouseValueOver10Mil() {
+            const float deposit = 2_000_000;
+            const float houseValue = 11_000_000;
+
+            var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
+            var quote = mortgageClient.GetQuote(new GetQuotesRequest {
+                Deposit = deposit,
+                HouseValue = houseValue
+            });
+
             Assert.Null(quote);
         }
 

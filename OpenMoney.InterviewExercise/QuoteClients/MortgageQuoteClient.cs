@@ -27,6 +27,10 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             {
                 return null;
             }
+
+            if(getQuotesRequest.HouseValue > 10_000_000d) {
+                return null;
+			}
             
             var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
             
