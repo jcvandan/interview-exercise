@@ -21,16 +21,9 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         
         public MortgageQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            // check if mortgage request is eligible
-            var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
-            if (loanToValueFraction < 0.1m)
-            {
+			if(!eligibleRequest(getQuotesRequest)) {
                 return null;
-            }
-
-            if(getQuotesRequest.HouseValue > 10_000_000) {
-                return null;
-			}
+			}           
             
             var request = new ThirdPartyMortgageRequest
             {
@@ -44,6 +37,19 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             return new MortgageQuote {
                 MonthlyPayment = cheapestQuote
             };
+        }
+
+        private bool eligibleRequest(GetQuotesRequest getQuotesRequest) {
+            var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
+            if(loanToValueFraction < 0.1m) {
+                return false;
+            }
+
+            if(getQuotesRequest.HouseValue > 10_000_000) {
+                return false;
+            }
+
+            return true;
         }
     }
 }
