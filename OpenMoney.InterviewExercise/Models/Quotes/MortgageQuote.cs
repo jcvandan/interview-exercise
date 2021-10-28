@@ -2,6 +2,6 @@ namespace OpenMoney.InterviewExercise.Models.Quotes
 {
     public class MortgageQuote
     {
-        public float MonthlyPayment { get; set; }
+        public decimal MonthlyPayment { get; set; }
     }
 }

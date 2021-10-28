@@ -37,25 +37,10 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
             var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
 
-            ThirdPartyMortgageResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Length; i++)
-            {
-                var quote = response[i];
+            decimal cheapestQuote = response.Select(x => x.MonthlyPayment).Min();
 
-                if (cheapestQuote == null)
-                {
-                    cheapestQuote = quote;
-                }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
-            }
-            
-            return new MortgageQuote
-            {
-                MonthlyPayment = (float) cheapestQuote.MonthlyPayment
+            return new MortgageQuote {
+                MonthlyPayment = cheapestQuote
             };
         }
     }

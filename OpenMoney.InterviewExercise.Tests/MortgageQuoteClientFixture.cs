@@ -46,7 +46,29 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
             
-            Assert.Equal(300m, (decimal)quote.MonthlyPayment);
+            Assert.Equal(300m, quote.MonthlyPayment);
+        }
+
+        [Fact]
+        public void GetQuote_ShouldReturn_SmallestQuote() {
+            const float deposit = 10_000;
+            const float houseValue = 100_000;
+
+            _apiMock
+                .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
+                .ReturnsAsync(new[]
+                {
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 200m },
+                    new ThirdPartyMortgageResponse { MonthlyPayment = 500m }
+                });
+
+            var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
+            var quote = mortgageClient.GetQuote(new GetQuotesRequest {
+                Deposit = deposit,
+                HouseValue = houseValue
+            });
+
+            Assert.Equal(200m, quote.MonthlyPayment);
         }
     }
 }
