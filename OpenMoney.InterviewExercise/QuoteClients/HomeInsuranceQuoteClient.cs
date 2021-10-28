@@ -23,40 +23,25 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
         public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000)
-            {
+			if(!eligibleRequest(getQuotesRequest)) {
                 return null;
-            }
+			}
             
             var request = new ThirdPartyHomeInsuranceRequest
             {
-                HouseValue = (decimal) getQuotesRequest.HouseValue,
+                HouseValue = getQuotesRequest.HouseValue,
                 ContentsValue = contentsValue
             };
 
             var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
 
-            ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Length; i++)
-            {
-                var quote = response[i];
+            float cheapestQuote = response.Select(x => x.MonthlyPayment).Min();
 
-                if (cheapestQuote == null)
-                {
-                    cheapestQuote = quote;
-                }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
-            }
-            
-            return new HomeInsuranceQuote
-            {
-                MonthlyPayment = (float) cheapestQuote.MonthlyPayment
+            return new HomeInsuranceQuote {
+                MonthlyPayment = cheapestQuote
             };
         }
+
+        private bool eligibleRequest(GetQuotesRequest getQuotesRequest) => getQuotesRequest.HouseValue <= 10_000_000;
     }
 }
