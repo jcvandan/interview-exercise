@@ -23,20 +23,18 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         {
             // check if mortgage request is eligible
             var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
-            if (loanToValueFraction < 0.1d)
+            if (loanToValueFraction < 0.1m)
             {
                 return null;
             }
 
-            if(getQuotesRequest.HouseValue > 10_000_000d) {
+            if(getQuotesRequest.HouseValue > 10_000_000) {
                 return null;
 			}
             
-            var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
-            
             var request = new ThirdPartyMortgageRequest
             {
-                MortgageAmount = (decimal) mortgageAmount
+                MortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit
             };
 
             var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();

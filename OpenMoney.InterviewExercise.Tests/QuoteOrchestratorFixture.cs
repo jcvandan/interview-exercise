@@ -18,8 +18,8 @@ namespace OpenMoney.InterviewExercise.Tests
                 _homeInsuranceClientMock.Object,
                 _mortgageClientMock.Object);
 
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
             
             var request = new GetQuotesRequest
             {
@@ -46,8 +46,8 @@ namespace OpenMoney.InterviewExercise.Tests
                 _homeInsuranceClientMock.Object,
                 _mortgageClientMock.Object);
 
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
             
             var request = new GetQuotesRequest
             {

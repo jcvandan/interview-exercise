@@ -13,8 +13,8 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_ShouldReturnNull_IfDepositUnder10Percent()
         {
-            const float deposit = 9_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 9_000;
+            const decimal houseValue = 100_000;
             
             var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
             var quote = mortgageClient.GetQuote(new GetQuotesRequest
@@ -28,8 +28,8 @@ namespace OpenMoney.InterviewExercise.Tests
 
         [Fact]
         public void GetQuote_ShouldReturnNull_IfHouseValueOver10Mil() {
-            const float deposit = 2_000_000;
-            const float houseValue = 11_000_000;
+            const decimal deposit = 2_000_000;
+            const decimal houseValue = 11_000_000;
 
             var mortgageClient = new MortgageQuoteClient(_apiMock.Object);
             var quote = mortgageClient.GetQuote(new GetQuotesRequest {
@@ -43,8 +43,8 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_ShouldReturn_AQuote()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
@@ -65,8 +65,8 @@ namespace OpenMoney.InterviewExercise.Tests
 
         [Fact]
         public void GetQuote_ShouldReturn_SmallestQuote() {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))

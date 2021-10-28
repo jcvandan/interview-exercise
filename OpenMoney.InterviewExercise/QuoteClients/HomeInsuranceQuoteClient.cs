@@ -24,7 +24,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
             // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000d)
+            if (getQuotesRequest.HouseValue > 10_000_000)
             {
                 return null;
             }
