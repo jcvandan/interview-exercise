@@ -12,7 +12,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
     public class HomeInsuranceQuoteClient : IHomeInsuranceQuoteClient
     {
-        private IThirdPartyHomeInsuranceApi _api;
+        private readonly IThirdPartyHomeInsuranceApi _api;
         
         public decimal contentsValue = 50_000;
 
@@ -24,7 +24,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
             // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000d)
+            if (getQuotesRequest.HouseValue > 10_000_000m)
             {
                 return null;
             }
@@ -58,7 +58,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             
             return new HomeInsuranceQuote
             {
-                MonthlyPayment = (float) cheapestQuote.MonthlyPayment
+                MonthlyPayment = (decimal)cheapestQuote.MonthlyPayment
             };
         }
     }

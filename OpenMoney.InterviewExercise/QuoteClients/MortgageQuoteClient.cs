@@ -23,7 +23,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         {
             // check if mortgage request is eligible
             var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
-            if (loanToValueFraction < 0.1d)
+            if (loanToValueFraction < 0.1m)
             {
                 return null;
             }
@@ -58,7 +58,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             
             return new MortgageQuote
             {
-                MonthlyPayment = (float) cheapestQuote.MonthlyPayment
+                MonthlyPayment = cheapestQuote.MonthlyPayment
             };
         }
     }

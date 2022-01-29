@@ -20,8 +20,8 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuotes_ShouldPassCorrectValuesToMortgageClient_AndReturnQuote()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             var request = new GetQuotesRequest
             {
@@ -44,8 +44,8 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuotes_ShouldPassCorrectValuesToHomeInsuranceClient_AndReturnQuote()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             var request = new GetQuotesRequest
             {

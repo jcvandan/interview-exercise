@@ -20,7 +20,7 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
         {
-            const float houseValue = 10_000_001;
+            const decimal houseValue = 10_000_001;
             
             var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
             var quote = mortgageClient.GetQuote(new GetQuotesRequest
@@ -38,7 +38,7 @@ namespace OpenMoney.InterviewExercise.Tests
             // is actually set at 10 million (it could be set to 9 million and that test would still pass).
             // This test asserts that the threshold is set correctly
             
-            const float houseValue = 10_000_000;
+            const decimal houseValue = 10_000_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyHomeInsuranceRequest>()))
@@ -57,11 +57,11 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_Should_Return_Quote_When_Only_One_Available()
         {
-            const float houseValue = 100_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.Is<ThirdPartyHomeInsuranceRequest>(r =>
-                    r.ContentsValue == 50_000 && r.HouseValue == (decimal) houseValue)))
+                    r.ContentsValue == 50_000 && r.HouseValue == houseValue)))
                 .ReturnsAsync(new[]
                 {
                     new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 30 }
@@ -72,17 +72,17 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
             
-            Assert.Equal(30m, (decimal)quote.MonthlyPayment);
+            Assert.Equal(30m, quote.MonthlyPayment);
         }
 
         [Fact]
         public void GetQuote_ShouldReturnCheapestMonthlyPayment_When_Multiple_Quotes_Returned()
         {
-            const float houseValue = 100_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.Is<ThirdPartyHomeInsuranceRequest>(r =>
-                    r.ContentsValue == 50_000 && r.HouseValue == (decimal)houseValue)))
+                    r.ContentsValue == 50_000 && r.HouseValue == houseValue)))
                 .ReturnsAsync(new[]
                 {
                     new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 30 },
@@ -95,19 +95,17 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
 
-            Assert.Equal(12m, (decimal)quote.MonthlyPayment);
+            Assert.Equal(12m, quote.MonthlyPayment);
         }
-
-
-
+        
         [Fact]
         public void GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
         {
-            const float houseValue = 100_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.Is<ThirdPartyHomeInsuranceRequest>(r =>
-                    r.ContentsValue == 50_000 && r.HouseValue == (decimal)houseValue)))
+                    r.ContentsValue == 50_000 && r.HouseValue == houseValue)))
                 .ReturnsAsync(Enumerable.Empty<ThirdPartyHomeInsuranceResponse>());
 
             var quote = _homeInsuranceClient.GetQuote(new GetQuotesRequest

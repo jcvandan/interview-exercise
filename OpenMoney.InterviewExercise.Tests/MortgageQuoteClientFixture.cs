@@ -20,8 +20,8 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_ShouldReturnNull_If_LTV_Under_10percent()
         {
-            const float deposit = 99_999;
-            const float houseValue = 1_000_000;
+            const decimal deposit = 99_999;
+            const decimal houseValue = 1_000_000;
             
             var quote = _mortgageClient.GetQuote(new GetQuotesRequest
             {
@@ -35,8 +35,8 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_ShouldReturnQuote_If_LTV_Exactly_10percent()
         {
-            const float deposit = 100_000;
-            const float houseValue = 1_000_000;
+            const decimal deposit = 100_000;
+            const decimal houseValue = 1_000_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
@@ -57,8 +57,8 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuote_ShouldReturnMonthlyPayment_When_Only_One_Returned()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
@@ -73,14 +73,14 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
             
-            Assert.Equal(300m, (decimal)quote.MonthlyPayment);
+            Assert.Equal(300m, quote.MonthlyPayment);
         }
         
         [Fact]
         public void GetQuote_ShouldReturnLowestMonthlyPayment_When_Multiple_Quotes_Returned()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
@@ -97,14 +97,14 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
 
-            Assert.Equal(100m, (decimal)quote.MonthlyPayment);
+            Assert.Equal(100m, quote.MonthlyPayment);
         }
 
         [Fact]
         public void GetQuote_Should_Pass_Correct_Mortgage_Amount_To_ThirdParty()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(
@@ -121,14 +121,14 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
             
-            Assert.Equal(100m, (decimal)quote.MonthlyPayment);
+            Assert.Equal(100m, quote.MonthlyPayment);
         }
 
         [Fact]
         public void GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
         {
-            const float deposit = 10_000;
-            const float houseValue = 100_000;
+            const decimal deposit = 10_000;
+            const decimal houseValue = 100_000;
 
             _apiMock
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
