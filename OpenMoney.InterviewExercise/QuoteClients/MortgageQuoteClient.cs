@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenMoney.InterviewExercise.Models;
@@ -19,48 +20,57 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         {
             _api = api;
         }
-        
+
         public async Task<MortgageQuote> GetQuote(GetQuotesRequest getQuotesRequest)
         {
             // check if mortgage request is eligible
             var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
             if (loanToValueFraction < 0.1m)
             {
-                return null;
+                return MortgageQuote.Failure("Loan-to-value must be over 10%");
             }
-            
+
             var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
-            
+
             var request = new ThirdPartyMortgageRequest
             {
-                MortgageAmount = (decimal) mortgageAmount
+                MortgageAmount = mortgageAmount
             };
 
-            var response = (await _api.GetQuotes(request)).ToList();
-
-            ThirdPartyMortgageResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Count; i++)
+            try
             {
-                var quote = response[i];
+                var response = (await _api.GetQuotes(request)).ToList();
 
-                if (cheapestQuote == null)
+                ThirdPartyMortgageResponse cheapestQuote = null;
+
+                for (var i = 0; i < response.Count; i++)
                 {
-                    cheapestQuote = quote;
+                    var quote = response[i];
+
+                    if (cheapestQuote == null)
+                    {
+                        cheapestQuote = quote;
+                    }
+                    else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
+                    {
+                        cheapestQuote = quote;
+                    }
                 }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
+
+                if (cheapestQuote is null)
+                    return MortgageQuote.Failure("No quotes were returned");
+
+                return MortgageQuote.Success(cheapestQuote.MonthlyPayment);
             }
 
-            if (cheapestQuote is null)
-                return null;
-            
-            return new MortgageQuote
+            catch (Exception ex)
             {
-                MonthlyPayment = cheapestQuote.MonthlyPayment
-            };
+                // In practice, we would have more specific catch blocks here
+                // depending on what the third party API could throw
+                // (e.g. HttpException if it is a HTTP call)
+
+                return MortgageQuote.Failure(ex.Message);
+            }
         }
     }
 }

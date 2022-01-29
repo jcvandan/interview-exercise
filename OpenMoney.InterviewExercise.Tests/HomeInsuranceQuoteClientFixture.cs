@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
@@ -19,7 +20,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public async Task GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
+        public async Task GetQuote_ShouldReturnFailure_IfHouseValue_Over10Mill()
         {
             const decimal houseValue = 10_000_001;
             
@@ -28,7 +29,8 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
             
-            Assert.Null(quote);
+            Assert.False(quote.Succeeded);
+            Assert.Equal("House value cannot exceed 10,000,000", quote.ErrorMessage);
         }
         
         [Fact]
@@ -51,7 +53,7 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
 
-            Assert.NotNull(quote);
+            Assert.True(quote.Succeeded);
         }
 
         [Fact]
@@ -71,7 +73,8 @@ namespace OpenMoney.InterviewExercise.Tests
             {
                 HouseValue = houseValue
             });
-            
+
+            Assert.True(quote.Succeeded);
             Assert.Equal(30m, quote.MonthlyPayment);
         }
 
@@ -95,11 +98,12 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
 
+            Assert.True(quote.Succeeded);
             Assert.Equal(12m, quote.MonthlyPayment);
         }
         
         [Fact]
-        public async Task GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
+        public async Task GetQuote_ShouldReturnFailure_When_No_Quotes_Returned()
         {
             const decimal houseValue = 100_000;
 
@@ -113,7 +117,28 @@ namespace OpenMoney.InterviewExercise.Tests
                 HouseValue = houseValue
             });
 
-            Assert.Null(quote);
+            Assert.False(quote.Succeeded);
+            Assert.Equal("No quotes returned", quote.ErrorMessage);
+        }
+
+
+
+        [Fact]
+        public async Task GetQuote_ShouldReturnFailure_When_Third_Party_Throws()
+        {
+            const decimal houseValue = 100_000;
+
+            _apiMock
+                .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyHomeInsuranceRequest>()))
+                .Throws(new Exception("Test exception message"));
+
+            var quote = await _homeInsuranceClient.GetQuote(new GetQuotesRequest
+            {
+                HouseValue = houseValue
+            });
+
+            Assert.False(quote.Succeeded);
+            Assert.Equal("Test exception message", quote.ErrorMessage);
         }
     }
 }

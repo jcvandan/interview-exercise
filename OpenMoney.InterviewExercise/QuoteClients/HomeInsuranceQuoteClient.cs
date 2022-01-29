@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenMoney.InterviewExercise.Models;
@@ -14,7 +15,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
     public class HomeInsuranceQuoteClient : IHomeInsuranceQuoteClient
     {
         private readonly IThirdPartyHomeInsuranceApi _api;
-        
+
         public decimal contentsValue = 50_000;
 
         public HomeInsuranceQuoteClient(IThirdPartyHomeInsuranceApi api)
@@ -27,40 +28,48 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             // check if request is eligible
             if (getQuotesRequest.HouseValue > 10_000_000m)
             {
-                return null;
+                return HomeInsuranceQuote.Failure("House value cannot exceed 10,000,000");
             }
-            
+
             var request = new ThirdPartyHomeInsuranceRequest
             {
-                HouseValue = (decimal) getQuotesRequest.HouseValue,
+                HouseValue = getQuotesRequest.HouseValue,
                 ContentsValue = contentsValue
             };
 
-            var response = (await _api.GetQuotes(request)).ToList();
-
-            ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Count; i++)
+            try
             {
-                var quote = response[i];
+                var response = (await _api.GetQuotes(request)).ToList();
 
-                if (cheapestQuote == null)
+                ThirdPartyHomeInsuranceResponse cheapestQuote = null;
+
+                for (var i = 0; i < response.Count; i++)
                 {
-                    cheapestQuote = quote;
+                    var quote = response[i];
+
+                    if (cheapestQuote == null)
+                    {
+                        cheapestQuote = quote;
+                    }
+                    else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
+                    {
+                        cheapestQuote = quote;
+                    }
                 }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
+
+                if (cheapestQuote is null)
+                    return HomeInsuranceQuote.Failure("No quotes returned");
+
+                return HomeInsuranceQuote.Success((decimal)cheapestQuote.MonthlyPayment);
             }
-
-            if (cheapestQuote is null)
-                return null;
-            
-            return new HomeInsuranceQuote
+            catch (Exception ex)
             {
-                MonthlyPayment = (decimal)cheapestQuote.MonthlyPayment
-            };
+                // In practice, we would have more specific catch blocks here
+                // depending on what the third party API could throw
+                // (e.g. HttpException if it is a HTTP call)
+
+                return HomeInsuranceQuote.Failure(ex.Message);
+            }
         }
     }
 }
