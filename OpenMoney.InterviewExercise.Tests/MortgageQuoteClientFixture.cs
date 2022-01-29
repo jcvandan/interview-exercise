@@ -98,5 +98,29 @@ namespace OpenMoney.InterviewExercise.Tests
 
             Assert.Equal(100m, (decimal)quote.MonthlyPayment);
         }
+
+        [Fact]
+        public void GetQuote_Should_Pass_Correct_Mortgage_Amount_To_ThirdParty()
+        {
+            const float deposit = 10_000;
+            const float houseValue = 100_000;
+
+            _apiMock
+                .Setup(api => api.GetQuotes(
+                    It.Is<ThirdPartyMortgageRequest>(r => r.MortgageAmount == 90_000)
+                ))
+                .ReturnsAsync(new[]
+                {
+                    new ThirdPartyMortgageResponse {MonthlyPayment = 100m},
+                });
+
+            var quote = _mortgageClient.GetQuote(new GetQuotesRequest
+            {
+                Deposit = deposit,
+                HouseValue = houseValue
+            });
+            
+            Assert.Equal(100m, (decimal)quote.MonthlyPayment);
+        }
     }
 }

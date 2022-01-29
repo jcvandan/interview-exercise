@@ -28,7 +28,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                 return null;
             }
             
-            var mortgageAmount = getQuotesRequest.Deposit - getQuotesRequest.HouseValue;
+            var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
             
             var request = new ThirdPartyMortgageRequest
             {
