@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.QuoteClients;
@@ -18,12 +19,11 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
+        public async Task GetQuote_ShouldReturnNull_IfHouseValue_Over10Mill()
         {
             const decimal houseValue = 10_000_001;
             
-            var mortgageClient = new HomeInsuranceQuoteClient(_apiMock.Object);
-            var quote = mortgageClient.GetQuote(new GetQuotesRequest
+            var quote = await _homeInsuranceClient.GetQuote(new GetQuotesRequest
             {
                 HouseValue = houseValue
             });
@@ -32,7 +32,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
         
         [Fact]
-        public void GetQuote_ShouldReturnQuote_IfHouseValue_Is_Exactly_10Million()
+        public async Task GetQuote_ShouldReturnQuote_IfHouseValue_Is_Exactly_10Million()
         {
             // The test above proves that 10,000,001 returns null, but not that the threshold 
             // is actually set at 10 million (it could be set to 9 million and that test would still pass).
@@ -47,7 +47,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 30 }
                 });
 
-            var quote = _homeInsuranceClient.GetQuote(new GetQuotesRequest {
+            var quote = await _homeInsuranceClient.GetQuote(new GetQuotesRequest {
                 HouseValue = houseValue
             });
 
@@ -55,7 +55,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_Should_Return_Quote_When_Only_One_Available()
+        public async Task GetQuote_Should_Return_Quote_When_Only_One_Available()
         {
             const decimal houseValue = 100_000;
 
@@ -67,7 +67,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 30 }
                 });
             
-            var quote = _homeInsuranceClient.GetQuote(new GetQuotesRequest
+            var quote = await _homeInsuranceClient.GetQuote(new GetQuotesRequest
             {
                 HouseValue = houseValue
             });
@@ -76,7 +76,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_ShouldReturnCheapestMonthlyPayment_When_Multiple_Quotes_Returned()
+        public async Task GetQuote_ShouldReturnCheapestMonthlyPayment_When_Multiple_Quotes_Returned()
         {
             const decimal houseValue = 100_000;
 
@@ -90,7 +90,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     new ThirdPartyHomeInsuranceResponse { MonthlyPayment = 12 },
                 });
 
-            var quote = _homeInsuranceClient.GetQuote(new GetQuotesRequest
+            var quote = await _homeInsuranceClient.GetQuote(new GetQuotesRequest
             {
                 HouseValue = houseValue
             });
@@ -99,7 +99,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
         
         [Fact]
-        public void GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
+        public async Task GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
         {
             const decimal houseValue = 100_000;
 
@@ -108,7 +108,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     r.ContentsValue == 50_000 && r.HouseValue == houseValue)))
                 .ReturnsAsync(Enumerable.Empty<ThirdPartyHomeInsuranceResponse>());
 
-            var quote = _homeInsuranceClient.GetQuote(new GetQuotesRequest
+            var quote = await _homeInsuranceClient.GetQuote(new GetQuotesRequest
             {
                 HouseValue = houseValue
             });

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.Models.Quotes;
 using OpenMoney.InterviewExercise.ThirdParties;
@@ -7,7 +8,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 {
     public interface IHomeInsuranceQuoteClient
     {
-        HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest);
+        Task<HomeInsuranceQuote> GetQuote(GetQuotesRequest getQuotesRequest);
     }
 
     public class HomeInsuranceQuoteClient : IHomeInsuranceQuoteClient
@@ -21,7 +22,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             _api = api;
         }
 
-        public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
+        public async Task<HomeInsuranceQuote> GetQuote(GetQuotesRequest getQuotesRequest)
         {
             // check if request is eligible
             if (getQuotesRequest.HouseValue > 10_000_000m)
@@ -35,11 +36,11 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                 ContentsValue = contentsValue
             };
 
-            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
+            var response = (await _api.GetQuotes(request)).ToList();
 
             ThirdPartyHomeInsuranceResponse cheapestQuote = null;
             
-            for (var i = 0; i < response.Length; i++)
+            for (var i = 0; i < response.Count; i++)
             {
                 var quote = response[i];
 

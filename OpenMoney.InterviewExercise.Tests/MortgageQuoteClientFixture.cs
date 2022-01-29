@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.QuoteClients;
@@ -18,12 +19,12 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_ShouldReturnNull_If_LTV_Under_10percent()
+        public async Task GetQuote_ShouldReturnNull_If_LTV_Under_10percent()
         {
             const decimal deposit = 99_999;
             const decimal houseValue = 1_000_000;
             
-            var quote = _mortgageClient.GetQuote(new GetQuotesRequest
+            var quote = await _mortgageClient.GetQuote(new GetQuotesRequest
             {
                 Deposit = deposit,
                 HouseValue = houseValue
@@ -33,7 +34,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_ShouldReturnQuote_If_LTV_Exactly_10percent()
+        public async Task GetQuote_ShouldReturnQuote_If_LTV_Exactly_10percent()
         {
             const decimal deposit = 100_000;
             const decimal houseValue = 1_000_000;
@@ -45,7 +46,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     new ThirdPartyMortgageResponse { MonthlyPayment = 300m }
                 });
 
-            var quote = _mortgageClient.GetQuote(new GetQuotesRequest
+            var quote = await _mortgageClient.GetQuote(new GetQuotesRequest
             {
                 Deposit = deposit,
                 HouseValue = houseValue
@@ -55,7 +56,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_ShouldReturnMonthlyPayment_When_Only_One_Returned()
+        public async Task GetQuote_ShouldReturnMonthlyPayment_When_Only_One_Returned()
         {
             const decimal deposit = 10_000;
             const decimal houseValue = 100_000;
@@ -67,7 +68,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     new ThirdPartyMortgageResponse { MonthlyPayment = 300m }
                 });
             
-            var quote = _mortgageClient.GetQuote(new GetQuotesRequest
+            var quote = await _mortgageClient.GetQuote(new GetQuotesRequest
             {
                 Deposit = deposit,
                 HouseValue = houseValue
@@ -77,7 +78,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
         
         [Fact]
-        public void GetQuote_ShouldReturnLowestMonthlyPayment_When_Multiple_Quotes_Returned()
+        public async Task GetQuote_ShouldReturnLowestMonthlyPayment_When_Multiple_Quotes_Returned()
         {
             const decimal deposit = 10_000;
             const decimal houseValue = 100_000;
@@ -91,7 +92,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     new ThirdPartyMortgageResponse { MonthlyPayment = 900m },
                 });
 
-            var quote = _mortgageClient.GetQuote(new GetQuotesRequest
+            var quote = await _mortgageClient.GetQuote(new GetQuotesRequest
             {
                 Deposit = deposit,
                 HouseValue = houseValue
@@ -101,7 +102,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_Should_Pass_Correct_Mortgage_Amount_To_ThirdParty()
+        public async Task GetQuote_Should_Pass_Correct_Mortgage_Amount_To_ThirdParty()
         {
             const decimal deposit = 10_000;
             const decimal houseValue = 100_000;
@@ -115,7 +116,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     new ThirdPartyMortgageResponse {MonthlyPayment = 100m},
                 });
 
-            var quote = _mortgageClient.GetQuote(new GetQuotesRequest
+            var quote = await _mortgageClient.GetQuote(new GetQuotesRequest
             {
                 Deposit = deposit,
                 HouseValue = houseValue
@@ -125,7 +126,7 @@ namespace OpenMoney.InterviewExercise.Tests
         }
 
         [Fact]
-        public void GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
+        public async Task GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
         {
             const decimal deposit = 10_000;
             const decimal houseValue = 100_000;
@@ -134,7 +135,7 @@ namespace OpenMoney.InterviewExercise.Tests
                 .Setup(api => api.GetQuotes(It.IsAny<ThirdPartyMortgageRequest>()))
                 .ReturnsAsync(Enumerable.Empty<ThirdPartyMortgageResponse>());
 
-            var quote = _mortgageClient.GetQuote(new GetQuotesRequest
+            var quote = await _mortgageClient.GetQuote(new GetQuotesRequest
             {
                 Deposit = deposit,
                 HouseValue = houseValue

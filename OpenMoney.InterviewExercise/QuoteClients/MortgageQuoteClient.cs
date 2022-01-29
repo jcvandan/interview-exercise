@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.Models.Quotes;
 using OpenMoney.InterviewExercise.ThirdParties;
@@ -7,7 +8,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 {
     public interface IMortgageQuoteClient
     {
-        MortgageQuote GetQuote(GetQuotesRequest getQuotesRequest);
+        Task<MortgageQuote> GetQuote(GetQuotesRequest getQuotesRequest);
     }
 
     public class MortgageQuoteClient : IMortgageQuoteClient
@@ -19,7 +20,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             _api = api;
         }
         
-        public MortgageQuote GetQuote(GetQuotesRequest getQuotesRequest)
+        public async Task<MortgageQuote> GetQuote(GetQuotesRequest getQuotesRequest)
         {
             // check if mortgage request is eligible
             var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
@@ -35,11 +36,11 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                 MortgageAmount = (decimal) mortgageAmount
             };
 
-            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
+            var response = (await _api.GetQuotes(request)).ToList();
 
             ThirdPartyMortgageResponse cheapestQuote = null;
             
-            for (var i = 0; i < response.Length; i++)
+            for (var i = 0; i < response.Count; i++)
             {
                 var quote = response[i];
 
