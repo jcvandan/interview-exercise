@@ -27,6 +27,8 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                 return MortgageQuote.Failure("Loan-to-value must be over 10%");
 
             var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
+            if (mortgageAmount < 0)
+                return MortgageQuote.Failure("Mortgage amount cannot be negative");
 
             var request = new ThirdPartyMortgageRequest
             {

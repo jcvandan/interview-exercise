@@ -169,5 +169,21 @@ namespace OpenMoney.InterviewExercise.Tests
             Assert.False(quote.Succeeded);
             Assert.Equal("Test exception message", quote.ErrorMessage);
         }
+
+        [Fact]
+        public async Task GetQuote_ShouldReturnFailure_If_Mortgage_Amount_Is_Negative()
+        {
+            const decimal deposit = 1_000_000;
+            const decimal houseValue = 100_000;
+            
+            var quote = await _mortgageClient.GetQuote(new GetQuotesRequest
+            {
+                Deposit = deposit,
+                HouseValue = houseValue
+            });
+
+            Assert.False(quote.Succeeded);
+            Assert.Equal("Mortgage amount cannot be negative", quote.ErrorMessage);
+        }
     }
 }
