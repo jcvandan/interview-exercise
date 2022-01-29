@@ -10,17 +10,19 @@ namespace OpenMoney.InterviewExercise.Tests
     {
         private readonly Mock<IMortgageQuoteClient> _mortgageClientMock = new();
         private readonly Mock<IHomeInsuranceQuoteClient> _homeInsuranceClientMock = new();
-        
+        private readonly QuoteOrchestrator _orchestrator;
+
+        public QuoteOrchestratorFixture()
+        {
+            _orchestrator = new QuoteOrchestrator(_homeInsuranceClientMock.Object, _mortgageClientMock.Object); 
+        }
+
         [Fact]
         public void GetQuotes_ShouldPassCorrectValuesToMortgageClient_AndReturnQuote()
         {
-            var orchetrator = new QuoteOrchestrator(
-                _homeInsuranceClientMock.Object,
-                _mortgageClientMock.Object);
-
             const float deposit = 10_000;
             const float houseValue = 100_000;
-            
+
             var request = new GetQuotesRequest
             {
                 Deposit = deposit,
@@ -34,7 +36,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     MonthlyPayment = 700
                 });
             
-            var response = orchetrator.GetQuotes(request);
+            var response = _orchestrator.GetQuotes(request);
             
             Assert.Equal(700, response.MortgageQuote.MonthlyPayment);
         }
@@ -42,13 +44,9 @@ namespace OpenMoney.InterviewExercise.Tests
         [Fact]
         public void GetQuotes_ShouldPassCorrectValuesToHomeInsuranceClient_AndReturnQuote()
         {
-            var orchetrator = new QuoteOrchestrator(
-                _homeInsuranceClientMock.Object,
-                _mortgageClientMock.Object);
-
             const float deposit = 10_000;
             const float houseValue = 100_000;
-            
+
             var request = new GetQuotesRequest
             {
                 Deposit = deposit,
@@ -62,7 +60,7 @@ namespace OpenMoney.InterviewExercise.Tests
                     MonthlyPayment = 600
                 });
             
-            var response = orchetrator.GetQuotes(request);
+            var response = _orchestrator.GetQuotes(request);
             
             Assert.Equal(600, response.HomeInsuranceQuote.MonthlyPayment);
         }
