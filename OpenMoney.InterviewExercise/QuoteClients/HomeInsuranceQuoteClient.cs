@@ -16,7 +16,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
     {
         private readonly IThirdPartyHomeInsuranceApi _api;
 
-        public decimal contentsValue = 50_000;
+        public decimal ContentsValue = 50_000;
 
         public HomeInsuranceQuoteClient(IThirdPartyHomeInsuranceApi api)
         {
@@ -25,42 +25,22 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
         public async Task<HomeInsuranceQuote> GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000m)
-            {
+            if (!HouseValueIsWithinLimits(getQuotesRequest))
                 return HomeInsuranceQuote.Failure("House value cannot exceed 10,000,000");
-            }
 
             var request = new ThirdPartyHomeInsuranceRequest
             {
                 HouseValue = getQuotesRequest.HouseValue,
-                ContentsValue = contentsValue
+                ContentsValue = ContentsValue
             };
 
             try
             {
-                var response = (await _api.GetQuotes(request)).ToList();
+                var quotes = (await _api.GetQuotes(request)).ToList();
 
-                ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-
-                for (var i = 0; i < response.Count; i++)
-                {
-                    var quote = response[i];
-
-                    if (cheapestQuote == null)
-                    {
-                        cheapestQuote = quote;
-                    }
-                    else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                    {
-                        cheapestQuote = quote;
-                    }
-                }
-
-                if (cheapestQuote is null)
-                    return HomeInsuranceQuote.Failure("No quotes returned");
-
-                return HomeInsuranceQuote.Success((decimal)cheapestQuote.MonthlyPayment);
+                return quotes.Any()
+                    ? HomeInsuranceQuote.Success((decimal)quotes.Min(q => q.MonthlyPayment))
+                    : HomeInsuranceQuote.Failure("No quotes returned");
             }
             catch (Exception ex)
             {
@@ -70,6 +50,11 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
                 return HomeInsuranceQuote.Failure(ex.Message);
             }
+        }
+
+        private bool HouseValueIsWithinLimits(GetQuotesRequest quotesRequest)
+        {
+            return quotesRequest.HouseValue <= 10_000_000m;
         }
     }
 }

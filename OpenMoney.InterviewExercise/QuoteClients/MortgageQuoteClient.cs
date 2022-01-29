@@ -23,12 +23,8 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
         public async Task<MortgageQuote> GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            // check if mortgage request is eligible
-            var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
-            if (loanToValueFraction < 0.1m)
-            {
+            if (!WithinLoanToValueLimit(getQuotesRequest))
                 return MortgageQuote.Failure("Loan-to-value must be over 10%");
-            }
 
             var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
 
@@ -39,30 +35,12 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
             try
             {
-                var response = (await _api.GetQuotes(request)).ToList();
-
-                ThirdPartyMortgageResponse cheapestQuote = null;
-
-                for (var i = 0; i < response.Count; i++)
-                {
-                    var quote = response[i];
-
-                    if (cheapestQuote == null)
-                    {
-                        cheapestQuote = quote;
-                    }
-                    else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                    {
-                        cheapestQuote = quote;
-                    }
-                }
-
-                if (cheapestQuote is null)
-                    return MortgageQuote.Failure("No quotes were returned");
-
-                return MortgageQuote.Success(cheapestQuote.MonthlyPayment);
+                var quotes = (await _api.GetQuotes(request)).ToList();
+                
+                return quotes.Any()
+                    ? MortgageQuote.Success(quotes.Min(q => q.MonthlyPayment)) 
+                    : MortgageQuote.Failure("No quotes were returned");
             }
-
             catch (Exception ex)
             {
                 // In practice, we would have more specific catch blocks here
@@ -71,6 +49,12 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
                 return MortgageQuote.Failure(ex.Message);
             }
+        }
+
+        private static bool WithinLoanToValueLimit(GetQuotesRequest quoteRequest)
+        {
+            var loanToValueFraction = quoteRequest.Deposit / quoteRequest.HouseValue;
+            return loanToValueFraction >= 0.1m;
         }
     }
 }
