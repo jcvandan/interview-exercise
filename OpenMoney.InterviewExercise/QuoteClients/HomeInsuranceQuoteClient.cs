@@ -52,6 +52,9 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                     cheapestQuote = quote;
                 }
             }
+
+            if (cheapestQuote is null)
+                return null;
             
             return new HomeInsuranceQuote
             {

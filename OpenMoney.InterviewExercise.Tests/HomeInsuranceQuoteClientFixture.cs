@@ -1,3 +1,4 @@
+using System.Linq;
 using Moq;
 using OpenMoney.InterviewExercise.Models;
 using OpenMoney.InterviewExercise.QuoteClients;
@@ -95,6 +96,26 @@ namespace OpenMoney.InterviewExercise.Tests
             });
 
             Assert.Equal(12m, (decimal)quote.MonthlyPayment);
+        }
+
+
+
+        [Fact]
+        public void GetQuote_ShouldReturnNull_When_No_Quotes_Returned()
+        {
+            const float houseValue = 100_000;
+
+            _apiMock
+                .Setup(api => api.GetQuotes(It.Is<ThirdPartyHomeInsuranceRequest>(r =>
+                    r.ContentsValue == 50_000 && r.HouseValue == (decimal)houseValue)))
+                .ReturnsAsync(Enumerable.Empty<ThirdPartyHomeInsuranceResponse>());
+
+            var quote = _homeInsuranceClient.GetQuote(new GetQuotesRequest
+            {
+                HouseValue = houseValue
+            });
+
+            Assert.Null(quote);
         }
     }
 }
