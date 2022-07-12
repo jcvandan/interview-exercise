@@ -24,14 +24,14 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
             // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000d)
+            if (getQuotesRequest.HouseValue > 10_000_000M)
             {
                 return null;
             }
             
             var request = new ThirdPartyHomeInsuranceRequest
             {
-                HouseValue = (decimal) getQuotesRequest.HouseValue,
+                HouseValue = getQuotesRequest.HouseValue,
                 ContentsValue = contentsValue
             };
 
@@ -55,7 +55,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             
             return new HomeInsuranceQuote
             {
-                MonthlyPayment = (float) cheapestQuote.MonthlyPayment
+                MonthlyPayment = cheapestQuote.MonthlyPayment
             };
         }
     }

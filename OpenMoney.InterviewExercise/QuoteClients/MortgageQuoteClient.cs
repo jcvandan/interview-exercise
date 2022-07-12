@@ -22,14 +22,19 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         public MortgageQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
             // check if mortgage request is eligible
-            var loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
-            if (loanToValueFraction < 0.1d)
+            decimal loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
+            if (loanToValueFraction < 0.1M)
             {
                 return null;
             }
             
-            //this will change to decimal
-            var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
+            decimal mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
+
+            if (mortgageAmount < 0)
+            {
+                //error handling
+            }
+
             var request = new ThirdPartyMortgageRequest
             {
                 MortgageAmount = (decimal) mortgageAmount
@@ -55,7 +60,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             
             return new MortgageQuote
             {
-                MonthlyPayment = (float) cheapestQuote.MonthlyPayment
+                MonthlyPayment = cheapestQuote.MonthlyPayment
             };
         }
     }
