@@ -28,8 +28,8 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                 return null;
             }
             
-            var mortgageAmount = getQuotesRequest.Deposit - getQuotesRequest.HouseValue;
-            
+            //this will change to decimal
+            var mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
             var request = new ThirdPartyMortgageRequest
             {
                 MortgageAmount = (decimal) mortgageAmount
