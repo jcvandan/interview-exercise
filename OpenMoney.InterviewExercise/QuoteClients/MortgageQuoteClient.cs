@@ -21,33 +21,25 @@ namespace OpenMoney.InterviewExercise.QuoteClients
         
         public MortgageQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            // check if mortgage request is eligible
-            decimal loanToValueFraction = getQuotesRequest.Deposit / getQuotesRequest.HouseValue;
-            if (loanToValueFraction < 0.1M)
-            {
-                return null;
-            }
-            
+            MortgageQuote mortgageQuote = new MortgageQuote();
             decimal mortgageAmount = getQuotesRequest.HouseValue - getQuotesRequest.Deposit;
 
-            if (mortgageAmount < 0)
+            if (!ValidateQuote(mortgageAmount, ref getQuotesRequest, ref mortgageQuote))
             {
-                //error handling
+                return mortgageQuote;
             }
 
             var request = new ThirdPartyMortgageRequest
             {
-                MortgageAmount = (decimal) mortgageAmount
+                MortgageAmount = mortgageAmount
             };
 
             var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
 
             ThirdPartyMortgageResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Length; i++)
-            {
-                var quote = response[i];
 
+            foreach (var quote in response)
+            {
                 if (cheapestQuote == null)
                 {
                     cheapestQuote = quote;
@@ -57,11 +49,36 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                     cheapestQuote = quote;
                 }
             }
-            
-            return new MortgageQuote
+
+            mortgageQuote.MonthlyPayment = cheapestQuote.MonthlyPayment;
+
+            return mortgageQuote;
+        }
+
+        private bool ValidateQuote(decimal mortgageAmount, ref GetQuotesRequest getQuotesRequest, ref MortgageQuote mortgageQuote)
+        {
+            if (!ValidLoanToValue(getQuotesRequest.Deposit, getQuotesRequest.HouseValue))
             {
-                MonthlyPayment = cheapestQuote.MonthlyPayment
-            };
+                mortgageQuote.Success = false;
+                mortgageQuote.ErrorString = "Loan to value ratio must be 10% or higher";
+                return false;
+            }
+
+            if (mortgageAmount < 0)
+            {
+                mortgageQuote.Success = false;
+                mortgageQuote.ErrorString = "Mortgage amount cannot be less than 0";
+                return false;
+            }
+
+            mortgageQuote.Success = true;
+            return true;
+        }
+
+        private bool ValidLoanToValue(decimal deposit, decimal houseValue)
+        {
+            //return false if houseValue == 0 - this will avoid dividing by 0
+            return houseValue == 0 ? false : (deposit / houseValue) < 0.1M;
         }
     }
 }

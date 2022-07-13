@@ -14,7 +14,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
     {
         private IThirdPartyHomeInsuranceApi _api;
         
-        public decimal contentsValue = 50_000;
+        public decimal contentsValue = 50_000M;
 
         public HomeInsuranceQuoteClient(IThirdPartyHomeInsuranceApi api)
         {
@@ -23,10 +23,11 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
         public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000M)
+            HomeInsuranceQuote insuranceQuote = new HomeInsuranceQuote();
+
+            if (ValidateQuote(ref insuranceQuote, getQuotesRequest.HouseValue))
             {
-                return null;
+                return insuranceQuote;
             }
             
             var request = new ThirdPartyHomeInsuranceRequest
@@ -38,11 +39,9 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
 
             ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Length; i++)
-            {
-                var quote = response[i];
 
+            foreach (var quote in response)
+            {
                 if (cheapestQuote == null)
                 {
                     cheapestQuote = quote;
@@ -52,11 +51,23 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                     cheapestQuote = quote;
                 }
             }
-            
-            return new HomeInsuranceQuote
+
+            insuranceQuote.MonthlyPayment = cheapestQuote.MonthlyPayment;
+
+            return insuranceQuote;
+        }
+
+        private bool ValidateQuote(ref HomeInsuranceQuote insuranceQuote, decimal houseValue)
+        {
+            if (houseValue > 10_000_000M)
             {
-                MonthlyPayment = cheapestQuote.MonthlyPayment
-            };
+                insuranceQuote.Success = false;
+                insuranceQuote.Error = "House valse must be less than "
+                return false;
+            }
+
+            insuranceQuote.Success = true;
+            return true;
         }
     }
 }
