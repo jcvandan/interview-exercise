@@ -36,7 +36,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                 ContentsValue = contentsValue
             };
 
-            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
+            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToList();
 
             ThirdPartyHomeInsuranceResponse cheapestQuote = null;
 
