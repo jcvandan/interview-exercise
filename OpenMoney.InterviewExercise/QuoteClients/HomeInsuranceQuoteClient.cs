@@ -13,7 +13,8 @@ namespace OpenMoney.InterviewExercise.QuoteClients
     public class HomeInsuranceQuoteClient : IHomeInsuranceQuoteClient
     {
         private IThirdPartyHomeInsuranceApi _api;
-        
+
+        //I am assuming contentsValue is the standard we cover and don't change this so will keep this as is
         public decimal contentsValue = 50_000M;
 
         public HomeInsuranceQuoteClient(IThirdPartyHomeInsuranceApi api)
@@ -38,21 +39,29 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
             var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToList();
 
-            ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-
-            foreach (var quote in response)
+            if (response.Count != 0)
             {
-                if (cheapestQuote == null)
-                {
-                    cheapestQuote = quote;
-                }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
-            }
+                ThirdPartyHomeInsuranceResponse cheapestQuote = null;
 
-            insuranceQuote.MonthlyPayment = cheapestQuote.MonthlyPayment;
+                foreach (var quote in response)
+                {
+                    if (cheapestQuote == null)
+                    {
+                        cheapestQuote = quote;
+                    }
+                    else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
+                    {
+                        cheapestQuote = quote;
+                    }
+                }
+
+                insuranceQuote.MonthlyPayment = cheapestQuote.MonthlyPayment;
+            }
+            else
+            {
+                insuranceQuote.Success = false;
+                insuranceQuote.ErrorString = "No result returned";
+            }
 
             return insuranceQuote;
         }
@@ -63,7 +72,7 @@ namespace OpenMoney.InterviewExercise.QuoteClients
             if (houseValue > maxHouseValue)
             {
                 insuranceQuote.Success = false;
-                insuranceQuote.Error = $"House valse must be less than {maxHouseValue.ToString("C")}";
+                insuranceQuote.ErrorString = "House value must be less than 10,000,000";
                 return false;
             }
 
