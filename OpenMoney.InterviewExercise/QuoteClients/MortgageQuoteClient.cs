@@ -36,21 +36,29 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
             var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToList();
 
-            ThirdPartyMortgageResponse cheapestQuote = null;
-
-            foreach (var quote in response)
+            if (response.Count != 0)
             {
-                if (cheapestQuote == null)
-                {
-                    cheapestQuote = quote;
-                }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
-            }
+                ThirdPartyMortgageResponse cheapestQuote = null;
 
-            mortgageQuote.MonthlyPayment = cheapestQuote.MonthlyPayment;
+                foreach (var quote in response)
+                {
+                    if (cheapestQuote == null)
+                    {
+                        cheapestQuote = quote;
+                    }
+                    else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
+                    {
+                        cheapestQuote = quote;
+                    }
+                }
+
+                mortgageQuote.MonthlyPayment = cheapestQuote.MonthlyPayment;
+            }
+            else
+            {
+                mortgageQuote.Success = false;
+                mortgageQuote.ErrorString = "No result returned";
+            }
 
             return mortgageQuote;
         }
@@ -64,10 +72,10 @@ namespace OpenMoney.InterviewExercise.QuoteClients
                 return false;
             }
 
-            if (mortgageAmount < 0)
+            if (mortgageAmount <= 0)
             {
                 mortgageQuote.Success = false;
-                mortgageQuote.ErrorString = "Mortgage amount cannot be less than 0";
+                mortgageQuote.ErrorString = mortgageAmount == 0 ? "Mortgage amount cannot be 0" : "Mortgage amount cannot be less than 0";
                 return false;
             }
 

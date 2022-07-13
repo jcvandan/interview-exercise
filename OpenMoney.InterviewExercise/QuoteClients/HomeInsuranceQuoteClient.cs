@@ -59,10 +59,11 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
         private bool ValidateQuote(ref HomeInsuranceQuote insuranceQuote, decimal houseValue)
         {
-            if (houseValue > 10_000_000M)
+            decimal maxHouseValue = 10_000_000M;
+            if (houseValue > maxHouseValue)
             {
                 insuranceQuote.Success = false;
-                insuranceQuote.Error = "House valse must be less than "
+                insuranceQuote.Error = $"House valse must be less than {maxHouseValue.ToString("C")}";
                 return false;
             }
 
