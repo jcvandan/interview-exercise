@@ -13,8 +13,9 @@ namespace OpenMoney.InterviewExercise.QuoteClients
     public class HomeInsuranceQuoteClient : IHomeInsuranceQuoteClient
     {
         private IThirdPartyHomeInsuranceApi _api;
-        
-        public decimal contentsValue = 50_000;
+
+        //I am assuming contentsValue is the standard we cover and don't change this so will keep this as is
+        public decimal contentsValue = 50_000M;
 
         public HomeInsuranceQuoteClient(IThirdPartyHomeInsuranceApi api)
         {
@@ -23,40 +24,60 @@ namespace OpenMoney.InterviewExercise.QuoteClients
 
         public HomeInsuranceQuote GetQuote(GetQuotesRequest getQuotesRequest)
         {
-            // check if request is eligible
-            if (getQuotesRequest.HouseValue > 10_000_000d)
+            HomeInsuranceQuote insuranceQuote = new HomeInsuranceQuote();
+
+            if (ValidateQuote(ref insuranceQuote, getQuotesRequest.HouseValue))
             {
-                return null;
+                return insuranceQuote;
             }
             
             var request = new ThirdPartyHomeInsuranceRequest
             {
-                HouseValue = (decimal) getQuotesRequest.HouseValue,
+                HouseValue = getQuotesRequest.HouseValue,
                 ContentsValue = contentsValue
             };
 
-            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToArray();
+            var response = _api.GetQuotes(request).GetAwaiter().GetResult().ToList();
 
-            ThirdPartyHomeInsuranceResponse cheapestQuote = null;
-            
-            for (var i = 0; i < response.Length; i++)
+            if (response.Count != 0)
             {
-                var quote = response[i];
+                ThirdPartyHomeInsuranceResponse cheapestQuote = null;
 
-                if (cheapestQuote == null)
+                foreach (var quote in response)
                 {
-                    cheapestQuote = quote;
+                    if (cheapestQuote == null)
+                    {
+                        cheapestQuote = quote;
+                    }
+                    else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
+                    {
+                        cheapestQuote = quote;
+                    }
                 }
-                else if (cheapestQuote.MonthlyPayment > quote.MonthlyPayment)
-                {
-                    cheapestQuote = quote;
-                }
+
+                insuranceQuote.MonthlyPayment = cheapestQuote.MonthlyPayment;
             }
-            
-            return new HomeInsuranceQuote
+            else
             {
-                MonthlyPayment = (float) cheapestQuote.MonthlyPayment
-            };
+                insuranceQuote.Success = false;
+                insuranceQuote.ErrorString = "No result returned";
+            }
+
+            return insuranceQuote;
+        }
+
+        private bool ValidateQuote(ref HomeInsuranceQuote insuranceQuote, decimal houseValue)
+        {
+            decimal maxHouseValue = 10_000_000M;
+            if (houseValue > maxHouseValue)
+            {
+                insuranceQuote.Success = false;
+                insuranceQuote.ErrorString = "House value must be less than 10,000,000";
+                return false;
+            }
+
+            insuranceQuote.Success = true;
+            return true;
         }
     }
 }
